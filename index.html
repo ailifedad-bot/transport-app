@@ -102,7 +102,7 @@ button{
     <textarea id="note" placeholder="مثلاً: نیاز به باربر، طبقه چندم، ..."></textarea>
 
     <p class="msg" id="msg" role="alert"></p>
-    <button type="submit">ارسال درخواست</button>
+    <button type="submit">ارسال درخواست در تلگرام</button>
   </form>
 
   <div class="card ok" id="ok">
@@ -143,10 +143,21 @@ button{
       note: val('note')
     };
 
-    if (tg && tg.initData) {
-      tg.sendData(JSON.stringify(data)); // برنامه بعد از ارسال بسته می‌شود
+    var text = 'درخواست حمل بار درون‌شهری\n' +
+      'خودرو: ' + data.vehicle + '\n' +
+      'مبدأ: ' + data.from + '\n' +
+      'مقصد: ' + data.to + '\n' +
+      'نوع بار: ' + data.cargo + '\n' +
+      (data.weight ? 'وزن تقریبی: ' + data.weight + ' کیلوگرم\n' : '') +
+      'زمان بارگیری: ' + data.when + '\n' +
+      'تلفن: ' + data.phone +
+      (data.note ? '\nتوضیحات: ' + data.note : '');
+
+    var link = 'https://t.me/makekzir?text=' + encodeURIComponent(text);
+    if (tg && tg.openTelegramLink) {
+      tg.openTelegramLink(link);
     } else {
-      msg.textContent = 'این صفحه باید از داخل تلگرام باز شود.';
+      window.open(link, '_blank');
     }
   });
 })();
