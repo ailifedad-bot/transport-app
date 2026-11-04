@@ -36,7 +36,12 @@
 <div class="field"><label>کد فروشگاه</label><input id="memberStore" value="ST-1001"><label>تاریخ پایان اشتراک فروشگاه</label><input id="storeExpiry" type="date"></div>
 <div class="field"><label>کد مشتری</label><input id="memberCustomer" value="CU-1001"><label>تاریخ پایان اشتراک مشتری</label><input id="customerExpiry" type="date"></div>
 </div><div class="actions"><button class="primary" id="saveMembers">ذخیره تاریخ اشتراک‌ها</button></div><div id="memberStatus"></div></div></section>
-<section id="reports" class="tabpage"><div class="panel"><h2>گزارش نهایی سفارش‌ها برای فروشگاه</h2><div class="field"><label>کد فروشگاه</label><input id="reportStore" value="ST-1001"></div><div id="reportList"></div></div></section>
+<section id="reports" class="tabpage"><div class="panel"><h2>گزارش نهایی سفارش‌ها برای فروشگاه</h2><div class="grid">
+<div class="field"><label>کد فروشگاه</label><input id="reportStore" value="ST-1001" placeholder="خالی = همه فروشگاه‌ها"></div>
+<div class="field"><label>کد مشتری</label><input id="reportCustomer" placeholder="همه مشتریان"></div>
+<div class="field"><label>حمل‌کننده</label><input id="reportCarrier" placeholder="نام حمل‌کننده"></div>
+<div class="field"><label>مرحله سفارش</label><select id="reportStatus"><option value="all">همه مراحل</option><option value="created">ثبت‌شده</option><option value="store_accepted">تأیید فروشگاه</option><option value="assigned">تعیین حمل‌کننده</option><option value="picked">دریافت از فروشگاه</option><option value="sent">ارسال کالا</option><option value="delivered">تحویل مشتری</option><option value="returned">مرجوعی</option><option value="completed">بسته‌شده</option></select></div>
+</div><div id="reportSummary"></div><div id="reportList"></div></div></section>
 <div class="actions"><button class="secondary" id="resetBtn">بازنشانی داده‌های آزمایشی</button></div>
 </main>
 <script>
@@ -53,6 +58,8 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const statusText={created:'ثبت‌شده؛ منتظر تأیید فروشگاه',store_accepted:'تأیید فروشگاه',assigned:'حمل‌کننده تعیین شد',picked:'کالا از فروشگاه دریافت شد',sent:'کالا ارسال شد',delivered:'تحویل مشتری شد؛ منتظر پاسخ مرجوعی',returned:'مرجوعی ثبت شد',completed:'حمل تکمیل شد'};
 const activeStatuses=['created','store_accepted','assigned','picked','sent','delivered'];
 const valid=(group,code)=>!!db.members[group][code]&&db.members[group][code]>=today();
+const eventTitles={created:'ثبت سفارش',store_accepted:'تأیید فروشگاه و ثبت پرداخت کالا',assigned:'تعیین حمل‌کننده',picked:'دریافت کالا از فروشگاه',sent:'ارسال کالا به مشتری',delivered:'تحویل کالا به مشتری',returned:'ثبت درخواست مرجوعی',completed:'بستن فرایند سفارش'};
+function recordEvent(o,stage,actor,detail){if(!Array.isArray(o.events))o.events=[];o.events.push({stage,title:eventTitles[stage]||stage,actor:actor||'سامانه',detail:detail||'',at:new Date().toISOString()});}
 const findWallet=c=>Number(db.wallets[c]||0);
 function render(){
 el('sOrders').textContent=db.orders.length.toLocaleString('fa-IR');
@@ -77,7 +84,17 @@ return '<article class="order"><div class="orderhead"><strong>سفارش '+esc(o
 }
 function renderLedger(){let c=el('walletCustomer').value.trim();let a=db.ledger.filter(x=>x.customer===c).slice().reverse();el('walletLedger').innerHTML=a.length?a.map(x=>'<div class="ledger"><b>'+esc(x.type)+'</b> · '+new Date(x.date).toLocaleString('fa-IR')+'<div class="amount '+(x.amount<0?'bad':'good')+'">'+(x.amount>0?'+':'')+money(x.amount)+'</div><span class="muted">'+esc(x.note||'')+'</span></div>').join(''):'<div class="empty">تراکنشی ثبت نشده است.</div>'}
 function renderMembers(){let s=el('memberStore').value.trim()||'ST-1001',c=el('memberCustomer').value.trim()||'CU-1001';el('storeExpiry').value=db.members.stores[s]||'';el('customerExpiry').value=db.members.customers[c]||'';el('memberStatus').innerHTML='<hr class="divider"><p>وضعیت اشتراک فروشگاه: <b>'+ (valid('stores',s)?'فعال':'غیرفعال / منقضی')+'</b></p><p>وضعیت اشتراک مشتری: <b>'+(valid('customers',c)?'فعال':'غیرفعال / منقضی')+'</b></p>'}
-function renderReports(){let s=el('reportStore').value.trim();let a=db.orders.filter(o=>o.store===s&&['completed','returned'].includes(o.status));el('reportList').innerHTML=a.length?a.slice().reverse().map(o=>'<div class="order"><b>سفارش '+esc(o.id)+'</b><p>وضعیت نهایی: '+esc(statusText[o.status])+'</p><p>کالا: '+esc(o.goods)+' | مبلغ کالا: '+money(o.goodsPrice)+' | هزینه حمل مستقل: '+money(o.shipPrice)+'</p><p class="muted">تاریخ پایان: '+esc(o.finishedAt||'')+'</p></div>').join(''):'<div class="empty">هنوز گزارش نهایی برای این فروشگاه ثبت نشده است.</div>'}
+function renderReports(){
+ let store=el('reportStore').value.trim(),customer=el('reportCustomer').value.trim(),carrier=el('reportCarrier').value.trim(),status=el('reportStatus').value;
+ let a=db.orders.filter(o=>(!store||o.store===store)&&(!customer||o.customer===customer)&&(!carrier||(o.carrier||'').toLowerCase().includes(carrier.toLowerCase()))&&(status==='all'||o.status===status));
+ let goods=a.reduce((n,o)=>n+Number(o.goodsPrice||0),0),shipping=a.reduce((n,o)=>n+Number(o.shipPrice||0),0);
+ el('reportSummary').innerHTML='<div class="ordergrid"><div>تعداد سفارش: <b>'+a.length.toLocaleString('fa-IR')+'</b></div><div>جمع مبلغ کالا: <b>'+money(goods)+'</b></div><div>جمع مستقل حمل: <b>'+money(shipping)+'</b></div><div>در جریان: <b>'+a.filter(o=>activeStatuses.includes(o.status)).length.toLocaleString('fa-IR')+'</b></div><div>مرجوعی باز: <b>'+a.filter(o=>o.status==='returned').length.toLocaleString('fa-IR')+'</b></div><div>بسته‌شده: <b>'+a.filter(o=>o.status==='completed').length.toLocaleString('fa-IR')+'</b></div></div>';
+ el('reportList').innerHTML=a.length?a.slice().reverse().map(o=>{
+  let ev=Array.isArray(o.events)?o.events:[];
+  let history=ev.length?ev.map(x=>'<div class="ledger"><b>'+esc(x.title)+'</b><div class="muted">'+new Date(x.at).toLocaleString('fa-IR')+' · '+esc(x.actor||'سامانه')+'</div><div>'+esc(x.detail||'')+'</div></div>').join(''):'<div class="muted">تاریخچه جزئی این سفارش در نسخه قبلی ذخیره نشده است.</div>';
+  return '<article class="order"><div class="orderhead"><b>سفارش '+esc(o.id)+'</b><span class="pill '+(o.status==='returned'?'red':o.status==='completed'?'':'warn')+'">'+esc(statusText[o.status])+'</span></div><div class="ordergrid"><div>فروشگاه: <b>'+esc(o.store)+'</b></div><div>مشتری: <b>'+esc(o.customer)+'</b></div><div>حمل‌کننده: <b>'+esc(o.carrier||'تعیین نشده')+'</b></div><div>کالا: <b>'+esc(o.goods)+'</b></div><div>مبلغ کالا: <b>'+money(o.goodsPrice)+'</b></div><div>هزینه حمل مستقل: <b>'+money(o.shipPrice)+'</b></div><div>کسر مبلغ کالا: <b>'+(o.walletCharged?'انجام شده':'انجام نشده')+'</b></div><div>مرجوعی: <b>'+(o.returnRequested===true?'درخواست شده':o.returnRequested===false?'درخواست نشده':'تعیین نشده')+'</b></div></div><hr class="divider"><b>تاریخچه مراحل و تأییدها</b>'+history+'</article>';
+ }).join(''):'<div class="empty">سفارشی با این مشخصات پیدا نشد.</div>';
+}
 function tab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active',p.id===name));render()}
 document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
 el('filter').addEventListener('change',renderOrders);
@@ -86,27 +103,29 @@ e.preventDefault();let s=el('storeCode').value.trim(),c=el('customerCode').value
 if(!valid('stores',s)||!valid('customers',c)){alert('اشتراک فروشگاه یا مشتری فعال نیست. ابتدا بخش اشتراک‌ها را بررسی کنید.');return}
 if(gp<0||sp<0||!Number.isFinite(gp)||!Number.isFinite(sp)){alert('مبالغ نامعتبر است.');return}
 if(findWallet(c)<gp){alert('اعتبار خرید مشتری برای مبلغ کالا کافی نیست. هزینه حمل از کیف اعتبار خرید کسر نمی‌شود.');return}
-let id='BH-'+(db.next++);db.orders.push({id,store:s,customer:c,goods:el('goods').value.trim(),goodsPrice:gp,shipPrice:sp,carrier:el('carrier').value.trim(),address:el('address').value.trim(),status:'created',created:new Date().toISOString(),returnRequested:null,walletCharged:false});
+let id='BH-'+(db.next++);let order={id,store:s,customer:c,goods:el('goods').value.trim(),goodsPrice:gp,shipPrice:sp,carrier:el('carrier').value.trim(),address:el('address').value.trim(),status:'created',created:new Date().toISOString(),returnRequested:null,walletCharged:false,events:[]};recordEvent(order,'created','ثبت‌کننده سفارش','سفارش ثبت شد و در انتظار تأیید فروشگاه است.');db.orders.push(order);
 save();e.target.reset();el('storeCode').value=s;el('customerCode').value=c;tab('orders');alert('سفارش '+id+' ثبت شد و منتظر تأیید فروشگاه است. مبلغ کالا هنگام تأیید فروشگاه از اعتبار خرید کسر می‌شود؛ هزینه حمل جداگانه است.')
 });
 el('orderList').addEventListener('click',e=>{
 let b=e.target.closest('button[data-act]');if(!b)return;let o=db.orders.find(x=>x.id===b.dataset.id);if(!o)return;
 switch(b.dataset.act){
-case'accept':if(o.walletCharged){alert('مبلغ کالا قبلاً ثبت شده است.');return}if(findWallet(o.customer)<o.goodsPrice){alert('اعتبار خرید مشتری برای پرداخت مبلغ کالا کافی نیست؛ ابتدا کیف اعتبار را شارژ کنید.');return}db.wallets[o.customer]=findWallet(o.customer)-o.goodsPrice;db.ledger.push({id:'L-'+Date.now(),customer:o.customer,type:'پرداخت مبلغ کالا به فروشگاه',amount:-o.goodsPrice,date:new Date().toISOString(),note:'پرداخت پس از تأیید فروشگاه؛ سفارش '+o.id});o.walletCharged=true;o.status='store_accepted';break;
-case'assign':o.carrier=o.carrier||prompt('نام حمل‌کننده را وارد کنید:','حمل‌کننده آزمایشی');if(!o.carrier)return;o.status='assigned';break;
-case'pickup':o.status='picked';break;
-case'send':o.status='sent';break;
-case'deliver':o.status='delivered';break;
-case'noReturn':o.returnRequested=false;o.status='completed';o.finishedAt=today();db.reports.push({order:o.id,store:o.store,result:'تحویل نهایی؛ بدون مرجوعی',date:o.finishedAt});break;
-case'yesReturn':o.returnRequested=true;o.status='returned';o.finishedAt=today();db.reports.push({order:o.id,store:o.store,result:'درخواست مرجوعی مشتری ثبت شد؛ نیازمند پیگیری',date:o.finishedAt});break;
-case'finishReturn':o.status='completed';o.finishedAt=today();db.reports.push({order:o.id,store:o.store,result:'فرایند مرجوعی پیگیری و بسته شد',date:o.finishedAt});break;
+case'accept':if(o.walletCharged){alert('مبلغ کالا قبلاً ثبت شده است.');return}if(findWallet(o.customer)<o.goodsPrice){alert('اعتبار خرید مشتری برای پرداخت مبلغ کالا کافی نیست؛ ابتدا کیف اعتبار را شارژ کنید.');return}db.wallets[o.customer]=findWallet(o.customer)-o.goodsPrice;db.ledger.push({id:'L-'+Date.now(),customer:o.customer,type:'پرداخت مبلغ کالا به فروشگاه',amount:-o.goodsPrice,date:new Date().toISOString(),note:'پرداخت پس از تأیید فروشگاه؛ سفارش '+o.id});o.walletCharged=true;o.status='store_accepted';recordEvent(o,'store_accepted','فروشگاه','فروشگاه سفارش را تأیید کرد؛ مبلغ کالا از کیف اعتبار خرید کسر شد و هزینه حمل مستقل ماند.');break;
+case'assign':o.carrier=o.carrier||prompt('نام حمل‌کننده را وارد کنید:','حمل‌کننده آزمایشی');if(!o.carrier)return;o.status='assigned';recordEvent(o,'assigned','مدیر حمل','حمل‌کننده تعیین شد: '+o.carrier);break;
+case'pickup':o.status='picked';recordEvent(o,'picked','حمل‌کننده','دریافت فیزیکی کالا از فروشگاه ثبت شد.');break;
+case'send':o.status='sent';recordEvent(o,'sent','حمل‌کننده','ارسال کالا به نشانی مشتری آغاز شد.');break;
+case'deliver':o.status='delivered';recordEvent(o,'delivered','حمل‌کننده','تحویل کالا به مشتری ثبت شد؛ وضعیت مرجوعی باید مشخص شود.');break;
+case'noReturn':o.returnRequested=false;o.status='completed';o.finishedAt=today();recordEvent(o,'completed','ثبت‌کننده تحویل','مشتری درخواست مرجوعی نداشت؛ سفارش بسته شد.');db.reports.push({order:o.id,store:o.store,result:'تحویل نهایی؛ بدون مرجوعی',date:o.finishedAt});break;
+case'yesReturn':o.returnRequested=true;o.status='returned';o.finishedAt=today();recordEvent(o,'returned','مشتری / پشتیبانی','درخواست مرجوعی ثبت شد؛ پرونده تا تعیین نتیجه باز می‌ماند.');db.reports.push({order:o.id,store:o.store,result:'درخواست مرجوعی مشتری ثبت شد؛ نیازمند پیگیری',date:o.finishedAt});break;
+case'finishReturn':o.status='completed';o.finishedAt=today();recordEvent(o,'completed','پشتیبانی / مدیر حمل','فرایند مرجوعی پیگیری و بسته شد.');db.reports.push({order:o.id,store:o.store,result:'فرایند مرجوعی پیگیری و بسته شد',date:o.finishedAt});break;
 }
 save();render();
 });
 el('topupBtn').addEventListener('click',()=>{let c=el('walletCustomer').value.trim(),n=Number(el('topupAmount').value),code=el('topupCode').value.trim();if(!c||!Number.isFinite(n)||n<=0||!code){alert('کد مشتری، مبلغ و کد شارژ را وارد کنید.');return}if(!db.members.customers[c]){alert('کد مشتری در بخش اشتراک‌ها ثبت نشده است.');return}db.wallets[c]=findWallet(c)+n;db.ledger.push({id:'L-'+Date.now(),customer:c,type:'شارژ آزمایشی با کد '+code,amount:n,date:new Date().toISOString(),note:'شارژ نمایشی؛ بدون تأیید پرداخت واقعی'});save();el('topupAmount').value='';el('topupCode').value='';render();alert('شارژ آزمایشی ثبت شد.')});
 el('saveMembers').addEventListener('click',()=>{let s=el('memberStore').value.trim(),c=el('memberCustomer').value.trim(),se=el('storeExpiry').value,ce=el('customerExpiry').value;if(!s||!c||!se||!ce){alert('کدها و تاریخ پایان هر دو اشتراک لازم است.');return}db.members.stores[s]=se;db.members.customers[c]=ce;save();render();alert('تاریخ اشتراک‌ها ذخیره شد.')});
-['walletCustomer','memberStore','memberCustomer','reportStore'].forEach(id=>el(id).addEventListener('input',render));
+['walletCustomer','memberStore','memberCustomer','reportStore','reportCustomer','reportCarrier','reportStatus'].forEach(id=>el(id).addEventListener('input',render));
 el('resetBtn').addEventListener('click',()=>{if(confirm('همه سفارش‌ها و تغییرات آزمایشی این مرورگر پاک و داده اولیه جایگزین شود؟')){db=seed();save();render();tab('orders')}});
+db.orders.forEach(o=>{if(!Array.isArray(o.events)){o.events=[{stage:o.status,title:'وضعیت فعلی سفارش',actor:'انتقال از نسخه قبلی',detail:'تاریخچه دقیق مراحل گذشته در نسخه قبلی ذخیره نشده بود.',at:o.created||new Date().toISOString()}];}});
+if(!Array.isArray(db.reports))db.reports=[];
 save();render();
 })();
 </script></body></html>
