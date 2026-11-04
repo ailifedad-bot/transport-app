@@ -86,14 +86,13 @@ e.preventDefault();let s=el('storeCode').value.trim(),c=el('customerCode').value
 if(!valid('stores',s)||!valid('customers',c)){alert('اشتراک فروشگاه یا مشتری فعال نیست. ابتدا بخش اشتراک‌ها را بررسی کنید.');return}
 if(gp<0||sp<0||!Number.isFinite(gp)||!Number.isFinite(sp)){alert('مبالغ نامعتبر است.');return}
 if(findWallet(c)<gp){alert('اعتبار خرید مشتری برای مبلغ کالا کافی نیست. هزینه حمل از کیف اعتبار خرید کسر نمی‌شود.');return}
-db.wallets[c]=findWallet(c)-gp;db.ledger.push({id:'L-'+Date.now(),customer:c,type:'پرداخت مبلغ کالا به فروشگاه',amount:-gp,date:new Date().toISOString(),note:'سفارش در انتظار تأیید فروشگاه'});
-let id='BH-'+(db.next++);db.orders.push({id,store:s,customer:c,goods:el('goods').value.trim(),goodsPrice:gp,shipPrice:sp,carrier:el('carrier').value.trim(),address:el('address').value.trim(),status:'created',created:new Date().toISOString(),returnRequested:null});
-save();e.target.reset();el('storeCode').value=s;el('customerCode').value=c;tab('orders');alert('سفارش '+id+' ثبت شد. مبلغ کالا از اعتبار خرید کسر شد؛ هزینه حمل جداگانه باقی ماند.')
+let id='BH-'+(db.next++);db.orders.push({id,store:s,customer:c,goods:el('goods').value.trim(),goodsPrice:gp,shipPrice:sp,carrier:el('carrier').value.trim(),address:el('address').value.trim(),status:'created',created:new Date().toISOString(),returnRequested:null,walletCharged:false});
+save();e.target.reset();el('storeCode').value=s;el('customerCode').value=c;tab('orders');alert('سفارش '+id+' ثبت شد و منتظر تأیید فروشگاه است. مبلغ کالا هنگام تأیید فروشگاه از اعتبار خرید کسر می‌شود؛ هزینه حمل جداگانه است.')
 });
 el('orderList').addEventListener('click',e=>{
 let b=e.target.closest('button[data-act]');if(!b)return;let o=db.orders.find(x=>x.id===b.dataset.id);if(!o)return;
 switch(b.dataset.act){
-case'accept':o.status='store_accepted';break;
+case'accept':if(o.walletCharged){alert('مبلغ کالا قبلاً ثبت شده است.');return}if(findWallet(o.customer)<o.goodsPrice){alert('اعتبار خرید مشتری برای پرداخت مبلغ کالا کافی نیست؛ ابتدا کیف اعتبار را شارژ کنید.');return}db.wallets[o.customer]=findWallet(o.customer)-o.goodsPrice;db.ledger.push({id:'L-'+Date.now(),customer:o.customer,type:'پرداخت مبلغ کالا به فروشگاه',amount:-o.goodsPrice,date:new Date().toISOString(),note:'پرداخت پس از تأیید فروشگاه؛ سفارش '+o.id});o.walletCharged=true;o.status='store_accepted';break;
 case'assign':o.carrier=o.carrier||prompt('نام حمل‌کننده را وارد کنید:','حمل‌کننده آزمایشی');if(!o.carrier)return;o.status='assigned';break;
 case'pickup':o.status='picked';break;
 case'send':o.status='sent';break;
