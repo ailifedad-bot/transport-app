@@ -127,8 +127,8 @@ if(o.status==='store_accepted'&&canAct('customerApprove'))next='<button class="p
 if(o.status==='customer_accepted'&&canAct('assign'))next='<button class="primary actionbtn" data-act="assign" data-id="'+o.id+'">تخصیص حمل‌کننده</button>';
 if(o.status==='assigned'&&canAct('carrierAccept'))next='<button class="primary actionbtn" data-act="carrierAccept" data-id="'+o.id+'">پذیرش مأموریت حمل</button>';
 if(o.status==='carrier_accepted'&&canAct('pickup'))next='<button class="primary actionbtn" data-act="pickup" data-id="'+o.id+'">تأیید دریافت کالا</button>';
-if(o.status==='picked')next='<button class="primary actionbtn" data-act="send" data-id="'+o.id+'">ثبت ارسال کالا</button>';
-if(o.status==='sent')next='<button class="primary actionbtn" data-act="deliver" data-id="'+o.id+'">ثبت تحویل به مشتری</button>';
+if(o.status==='picked'&&canAct('send'))next='<button class="primary actionbtn" data-act="send" data-id="'+o.id+'">ثبت ارسال کالا</button>';
+if(o.status==='sent'&&canAct('deliver'))next='<button class="primary actionbtn" data-act="deliver" data-id="'+o.id+'">ثبت تحویل به مشتری</button>';
 if(o.status==='delivered'&&canAct('confirmReceipt'))next='<button class="primary actionbtn" data-act="confirmReceipt" data-id="'+o.id+'">تأیید دریافت توسط مشتری</button>';
 if(o.status==='received'&&canAct('noReturn'))next='<button class="primary actionbtn" data-act="noReturn" data-id="'+o.id+'">تأیید عدم مرجوعی</button><button class="danger" data-act="yesReturn" data-id="'+o.id+'">درخواست مرجوعی</button>';
 if(o.status==='returned'&&canAct('storeReturn'))next='<button class="primary actionbtn" data-act="storeReturn" data-id="'+o.id+'">تأیید دریافت مرجوعی توسط فروشگاه</button>';
