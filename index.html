@@ -12,7 +12,7 @@
 .nextbox{margin-top:12px;padding:12px;border-radius:11px;background:#e8f4ff;border:2px solid #3183c8;color:#124d78}
 .nextbox.done{background:#e8f7ee;border-color:#23945d;color:#145b38}
 .nextbox.return{background:#fff0ed;border-color:#d85a4d;color:#8e2b23}
-.nextbox b{display:block;font-size:14px}.nextbox small{display:block;font-weight:normal;margin-top:3px}
+.nextbox b{display:block;font-size:14px}.nextbox small{display:block;font-weight:normal;margin-top:3px}.nextbox.store{background:#fff0ed;border-color:#d85a4d;color:#8e2b23}.nextbox.customer{background:#e8f4ff;border-color:#3183c8;color:#124d78}.nextbox.carrier{background:#f1eaff;border-color:#8961bd;color:#55358b}.nextbox.admin{background:#fff4d6;border-color:#d99a1b;color:#714900}
 .progress{display:flex;gap:4px;margin:12px 0;direction:rtl}
 .progress span{height:7px;flex:1;border-radius:8px;background:#dfe7e4}
 .progress span.done{background:#23945d}.progress span.current{background:#e5a321}
@@ -101,7 +101,9 @@ function progressHtml(o){
 }
 function nextBoxHtml(o){
  const n=nextInfo(o),done=o.status==='completed',ret=o.status==='returned';
- return '<div class="nextbox '+(done?'done':ret?'return':'')+'"><b>'+(done?'✓ پایان سفارش':ret?'⚠ نیاز به پیگیری مرجوعی':'اقدام بعدی شما: '+n[0])+'</b><small>'+n[1]+'</small></div>';
+ const owner={created:'store',store_accepted:'customer',customer_accepted:'admin',assigned:'carrier',carrier_accepted:'carrier',picked:'carrier',sent:'carrier',delivered:'customer',received:'customer',return_store_received:'admin'}[o.status]||'';
+ const ownerLabel={store:'مسئول فروشگاه',customer:'مشتری',carrier:'حمل‌کننده',admin:'مدیر برنامه'}[owner]||'';
+ return '<div class="nextbox '+(done?'done':ret?'return':owner)+'"><b>'+(done?'✓ پایان سفارش':ret?'⚠ نیاز به پیگیری مرجوعی':'اقدام بعدی: '+n[0])+'</b><small>'+n[1]+'</small>'+(ownerLabel?'<small><b>مسئول این مرحله: '+ownerLabel+'</b>'+(role()===owner?' · شما می‌توانید اقدام کنید.':' · منتظر اقدام مسئول مربوطه.')+'</small>':'')+'</div>';
 }
 
 function render(){
