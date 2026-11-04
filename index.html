@@ -6,6 +6,19 @@
 <style>
 :root{--bg:#f3f6f5;--card:#fff;--ink:#18332e;--muted:#647773;--line:#dce6e2;--green:#16745d;--pale:#e8f4ef;--red:#b33c36;--amber:#98620b}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 Tahoma,Arial,sans-serif}header{background:#173b35;color:#fff;padding:18px 16px}header .inner,main{max-width:1000px;margin:auto}h1{font-size:21px;margin:0}header p{margin:3px 0 0;color:#c9ddd6;font-size:13px}.notice{background:#fff5dc;color:#684b0b;padding:10px 14px;font-size:12px;border-bottom:1px solid #f0dfa9}main{padding:14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:20px}.tabs{display:flex;gap:7px;overflow:auto;margin:0 0 13px;padding-bottom:3px}.tab,button{font:inherit;border:0;border-radius:9px;padding:9px 13px;cursor:pointer}.tab{background:#e5ece9;color:var(--ink);white-space:nowrap}.tab.active,button.primary{background:var(--green);color:white}.tabpage{display:none}.tabpage.active{display:block}.panel{margin-bottom:12px}.panel h2{font-size:16px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}.field input,.field select,.field textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit;min-width:0}.field textarea{min-height:65px}.wide{grid-column:1/-1}.actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}button.secondary{background:#e8efec;color:var(--ink)}button.danger{background:#fae9e7;color:var(--red)}button:disabled{opacity:.4;cursor:not-allowed}.muted{color:var(--muted);font-size:12px}.order{border:1px solid var(--line);border-radius:10px;padding:11px;margin:9px 0;background:#fff}.orderhead{display:flex;justify-content:space-between;gap:8px;align-items:center}.order strong{font-size:14px}.pill{font-size:11px;padding:3px 8px;border-radius:30px;background:var(--pale);color:var(--green);white-space:nowrap}.pill.warn{background:#fff2d9;color:var(--amber)}.pill.red{background:#fae9e7;color:var(--red)}.ordergrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:7px;font-size:12px}.ordergrid span{color:var(--muted)}.divider{border:0;border-top:1px solid var(--line);margin:12px 0}.empty{padding:20px;text-align:center;color:var(--muted)}.ledger{font-size:12px;border-bottom:1px solid var(--line);padding:8px 0}.ledger:last-child{border:0}.amount{font-weight:bold}.good{color:var(--green)}.bad{color:var(--red)}.hidden{display:none!important}
+
+.stepnotice{margin:12px 0;padding:12px;border-radius:11px;background:#fff4d6;border:2px solid #e5a321;color:#714900;font-weight:bold}
+.stepnotice small{display:block;font-weight:normal;margin-top:3px}
+.nextbox{margin-top:12px;padding:12px;border-radius:11px;background:#e8f4ff;border:2px solid #3183c8;color:#124d78}
+.nextbox.done{background:#e8f7ee;border-color:#23945d;color:#145b38}
+.nextbox.return{background:#fff0ed;border-color:#d85a4d;color:#8e2b23}
+.nextbox b{display:block;font-size:14px}.nextbox small{display:block;font-weight:normal;margin-top:3px}
+.progress{display:flex;gap:4px;margin:12px 0;direction:rtl}
+.progress span{height:7px;flex:1;border-radius:8px;background:#dfe7e4}
+.progress span.done{background:#23945d}.progress span.current{background:#e5a321}
+.actionbtn{font-weight:bold;min-height:46px;padding:10px 16px;box-shadow:0 2px 0 #0e5946}
+.order .actions{margin-top:12px}
+
 @media(max-width:560px){.stats{grid-template-columns:repeat(3,1fr)}.stat{padding:9px}.stat strong{font-size:17px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.ordergrid{grid-template-columns:1fr 1fr}}
 </style></head>
 <body>
@@ -20,7 +33,7 @@
 <nav class="tabs">
 <button class="tab active" data-tab="orders">سفارش‌ها</button><button class="tab" data-tab="new">ثبت سفارش</button><button class="tab" data-tab="wallet">کیف اعتبار خرید</button><button class="tab" data-tab="members">اشتراک‌ها</button><button class="tab" data-tab="reports">گزارش فروشگاه</button>
 </nav>
-<section id="orders" class="tabpage active"><div class="panel"><h2>فهرست سفارش‌ها</h2><div class="field"><label for="filter">فیلتر وضعیت</label><select id="filter"><option value="all">همه سفارش‌ها</option><option value="active">سفارش‌های در جریان</option><option value="completed">تکمیل‌شده</option><option value="returned">مرجوع‌شده</option></select></div><div id="orderList"></div></div></section>
+<section id="orders" class="tabpage active"><div class="panel"><h2>فهرست سفارش‌ها</h2><div class="field"><label for="filter">فیلتر وضعیت</label><select id="filter"><option value="all">همه سفارش‌ها</option><option value="active">سفارش‌های در جریان</option><option value="completed">تکمیل‌شده</option><option value="returned">مرجوع‌شده</option></select></div><div id="stepAlert" aria-live="polite"></div><div id="orderList"></div></div></section>
 <section id="new" class="tabpage"><div class="panel"><h2>ثبت سفارش آزمایشی</h2><form id="newForm" class="grid">
 <div class="field"><label>کد فروشگاه</label><input id="storeCode" value="ST-1001" required></div>
 <div class="field"><label>کد مشتری</label><input id="customerCode" value="CU-1001" required></div>
@@ -61,6 +74,30 @@ const valid=(group,code)=>!!db.members[group][code]&&db.members[group][code]>=to
 const eventTitles={created:'ثبت سفارش',store_accepted:'تأیید فروشگاه و ثبت پرداخت کالا',assigned:'تعیین حمل‌کننده',picked:'دریافت کالا از فروشگاه',sent:'ارسال کالا به مشتری',delivered:'تحویل کالا به مشتری',returned:'ثبت درخواست مرجوعی',completed:'بستن فرایند سفارش'};
 function recordEvent(o,stage,actor,detail){if(!Array.isArray(o.events))o.events=[];o.events.push({stage,title:eventTitles[stage]||stage,actor:actor||'سامانه',detail:detail||'',at:new Date().toISOString()});}
 const findWallet=c=>Number(db.wallets[c]||0);
+
+function nextInfo(o){
+ const map={
+ created:['تأیید سفارش توسط فروشگاه','فروشگاه باید سفارش و مبلغ کالا را بررسی و دکمه «تأیید فروشگاه» را بزند.'],
+ store_accepted:['تعیین حمل‌کننده','مدیر حمل باید نام راننده یا شرکت حمل را ثبت کند.'],
+ assigned:['دریافت کالا از فروشگاه','حمل‌کننده باید دریافت کالا، تعداد بسته‌ها و سلامت ظاهری را ثبت کند.'],
+ picked:['ثبت ارسال کالا','پس از بارگیری، خروج کالا و شروع مسیر را ثبت کنید.'],
+ sent:['ثبت تحویل به مشتری','نام تحویل‌گیرنده و وضعیت کالا هنگام تحویل را وارد کنید.'],
+ delivered:['تعیین وضعیت مرجوعی','مشخص کنید مشتری درخواست مرجوعی دارد یا خیر.'],
+ returned:['پیگیری و بستن مرجوعی','نتیجه بازگشت کالا و اقدام نهایی را ثبت کنید.'],
+ completed:['فرایند کامل شد','تمام مراحل این سفارش ثبت و بسته شده است.']
+ };
+ return map[o.status]||['بررسی سفارش','وضعیت سفارش را بررسی کنید.'];
+}
+const stages=['created','store_accepted','assigned','picked','sent','delivered','completed'];
+function progressHtml(o){
+ const ix=stages.indexOf(o.status);
+ return '<div class="progress" aria-label="پیشرفت سفارش">'+stages.map((s,i)=>'<span class="'+(i<ix?'done':i===ix?'current':'')+'"></span>').join('')+'</div>';
+}
+function nextBoxHtml(o){
+ const n=nextInfo(o),done=o.status==='completed',ret=o.status==='returned';
+ return '<div class="nextbox '+(done?'done':ret?'return':'')+'"><b>'+(done?'✓ پایان سفارش':ret?'⚠ نیاز به پیگیری مرجوعی':'اقدام بعدی شما: '+n[0])+'</b><small>'+n[1]+'</small></div>';
+}
+
 function render(){
 el('sOrders').textContent=db.orders.length.toLocaleString('fa-IR');
 el('sActive').textContent=db.orders.filter(o=>activeStatuses.includes(o.status)).length.toLocaleString('fa-IR');
@@ -68,18 +105,25 @@ el('sCredit').textContent=money(Object.values(db.wallets).reduce((a,b)=>a+Number
 el('walletBalance').value=money(findWallet(el('walletCustomer').value.trim()));
 renderOrders();renderLedger();renderMembers();renderReports();
 }
+
+function showStepAlert(o){
+ const n=nextInfo(o);
+ let msg=o.status==='completed'?'سفارش '+o.id+' با موفقیت بسته شد.':o.status==='returned'?'درخواست مرجوعی سفارش '+o.id+' ثبت شد؛ پیگیری آن الزامی است.':'مرحله ثبت شد. مرحله بعد: '+n[0]+' — '+n[1];
+ el('stepAlert').innerHTML='<div class="stepnotice" role="status">'+(o.status==='completed'?'✓ ':'🔔 ')+esc(msg)+'<small>این پیام داخل برنامه نمایش داده می‌شود و پیامک یا اعلان واقعی برای مشتری ارسال نمی‌کند.</small></div>';
+}
+
 function renderOrders(){
 let f=el('filter').value;let list=db.orders.filter(o=>f==='all'||(f==='active'&&activeStatuses.includes(o.status))||(f==='completed'&&o.status==='completed')||(f==='returned'&&o.status==='returned'));
 el('orderList').innerHTML=list.length?list.slice().reverse().map(o=>{
 let next='';
-if(o.status==='created')next='<button class="primary" data-act="accept" data-id="'+o.id+'">تأیید فروشگاه</button>';
-if(o.status==='store_accepted')next='<button class="primary" data-act="assign" data-id="'+o.id+'">تعیین حمل‌کننده</button>';
-if(o.status==='assigned')next='<button class="primary" data-act="pickup" data-id="'+o.id+'">تأیید دریافت کالا</button>';
-if(o.status==='picked')next='<button class="primary" data-act="send" data-id="'+o.id+'">ثبت ارسال کالا</button>';
-if(o.status==='sent')next='<button class="primary" data-act="deliver" data-id="'+o.id+'">ثبت تحویل به مشتری</button>';
-if(o.status==='delivered')next='<button class="primary" data-act="noReturn" data-id="'+o.id+'">عدم مرجوعی؛ تکمیل حمل</button><button class="danger" data-act="yesReturn" data-id="'+o.id+'">مشتری درخواست مرجوعی دارد</button>';
-if(o.status==='returned')next='<button class="primary" data-act="finishReturn" data-id="'+o.id+'">تأیید پایان فرایند مرجوعی</button>';
-return '<article class="order"><div class="orderhead"><strong>سفارش '+esc(o.id)+' · '+esc(o.goods)+'</strong><span class="pill '+(o.status==='returned'?'red':o.status==='completed'?'':'warn')+'">'+esc(statusText[o.status])+'</span></div><div class="ordergrid"><div><span>فروشگاه: </span>'+esc(o.store)+'</div><div><span>مشتری: </span>'+esc(o.customer)+'</div><div><span>مبلغ کالا: </span>'+money(o.goodsPrice)+'</div><div><span>هزینه حمل: </span>'+money(o.shipPrice)+'</div><div><span>حمل‌کننده: </span>'+esc(o.carrier||'تعیین نشده')+'</div><div><span>تاریخ: </span>'+new Date(o.created).toLocaleDateString('fa-IR')+'</div></div><div class="actions">'+next+'</div></article>'
+if(o.status==='created')next='<button class="primary actionbtn" data-act="accept" data-id="'+o.id+'">تأیید فروشگاه</button>';
+if(o.status==='store_accepted')next='<button class="primary actionbtn" data-act="assign" data-id="'+o.id+'">تعیین حمل‌کننده</button>';
+if(o.status==='assigned')next='<button class="primary actionbtn" data-act="pickup" data-id="'+o.id+'">تأیید دریافت کالا</button>';
+if(o.status==='picked')next='<button class="primary actionbtn" data-act="send" data-id="'+o.id+'">ثبت ارسال کالا</button>';
+if(o.status==='sent')next='<button class="primary actionbtn" data-act="deliver" data-id="'+o.id+'">ثبت تحویل به مشتری</button>';
+if(o.status==='delivered')next='<button class="primary actionbtn" data-act="noReturn" data-id="'+o.id+'">عدم مرجوعی؛ تکمیل حمل</button><button class="danger" data-act="yesReturn" data-id="'+o.id+'">مشتری درخواست مرجوعی دارد</button>';
+if(o.status==='returned')next='<button class="primary actionbtn" data-act="finishReturn" data-id="'+o.id+'">تأیید پایان فرایند مرجوعی</button>';
+return '<article class="order"><div class="orderhead"><strong>سفارش '+esc(o.id)+' · '+esc(o.goods)+'</strong><span class="pill '+(o.status==='returned'?'red':o.status==='completed'?'':'warn')+'">'+esc(statusText[o.status])+'</span></div>'+progressHtml(o)+nextBoxHtml(o)+'<div class="ordergrid"><div><span>فروشگاه: </span>'+esc(o.store)+'</div><div><span>مشتری: </span>'+esc(o.customer)+'</div><div><span>مبلغ کالا: </span>'+money(o.goodsPrice)+'</div><div><span>هزینه حمل: </span>'+money(o.shipPrice)+'</div><div><span>حمل‌کننده: </span>'+esc(o.carrier||'تعیین نشده')+'</div><div><span>تاریخ: </span>'+new Date(o.created).toLocaleDateString('fa-IR')+'</div></div><div class="actions">'+next+'</div></article>'
 }).join(''):'<div class="empty">سفارشی برای نمایش وجود ندارد.</div>';
 }
 function renderLedger(){let c=el('walletCustomer').value.trim();let a=db.ledger.filter(x=>x.customer===c).slice().reverse();el('walletLedger').innerHTML=a.length?a.map(x=>'<div class="ledger"><b>'+esc(x.type)+'</b> · '+new Date(x.date).toLocaleString('fa-IR')+'<div class="amount '+(x.amount<0?'bad':'good')+'">'+(x.amount>0?'+':'')+money(x.amount)+'</div><span class="muted">'+esc(x.note||'')+'</span></div>').join(''):'<div class="empty">تراکنشی ثبت نشده است.</div>'}
@@ -118,7 +162,7 @@ case'noReturn':o.returnRequested=false;o.status='completed';o.finishedAt=today()
 case'yesReturn':o.returnRequested=true;o.status='returned';o.finishedAt=today();recordEvent(o,'returned','مشتری / پشتیبانی','درخواست مرجوعی ثبت شد؛ پرونده تا تعیین نتیجه باز می‌ماند.');db.reports.push({order:o.id,store:o.store,result:'درخواست مرجوعی مشتری ثبت شد؛ نیازمند پیگیری',date:o.finishedAt});break;
 case'finishReturn':{let detail=prompt('نتیجه نهایی مرجوعی را ثبت کنید (وضعیت کالا، تحویل به فروشگاه، تسویه یا اقدام انجام‌شده):','کالا به فروشگاه بازگردانده شد؛ پرونده بسته شد');if(detail===null||!detail.trim())return;o.returnDetails=detail.trim();o.status='completed';o.finishedAt=today();recordEvent(o,'completed','پشتیبانی / مدیر حمل',o.returnDetails);db.reports.push({order:o.id,store:o.store,result:'فرایند مرجوعی پیگیری و بسته شد: '+o.returnDetails,date:o.finishedAt});break;}
 }
-save();render();
+save();render();showStepAlert(o);el('stepAlert').scrollIntoView({behavior:'smooth',block:'center'});
 });
 el('topupBtn').addEventListener('click',()=>{let c=el('walletCustomer').value.trim(),n=Number(el('topupAmount').value),code=el('topupCode').value.trim();if(!c||!Number.isFinite(n)||n<=0||!code){alert('کد مشتری، مبلغ و کد شارژ را وارد کنید.');return}if(!db.members.customers[c]){alert('کد مشتری در بخش اشتراک‌ها ثبت نشده است.');return}db.wallets[c]=findWallet(c)+n;db.ledger.push({id:'L-'+Date.now(),customer:c,type:'شارژ آزمایشی با کد '+code,amount:n,date:new Date().toISOString(),note:'شارژ نمایشی؛ بدون تأیید پرداخت واقعی'});save();el('topupAmount').value='';el('topupCode').value='';render();alert('شارژ آزمایشی ثبت شد.')});
 el('saveMembers').addEventListener('click',()=>{let s=el('memberStore').value.trim(),c=el('memberCustomer').value.trim(),se=el('storeExpiry').value,ce=el('customerExpiry').value;if(!s||!c||!se||!ce){alert('کدها و تاریخ پایان هر دو اشتراک لازم است.');return}db.members.stores[s]=se;db.members.customers[c]=ce;save();render();alert('تاریخ اشتراک‌ها ذخیره شد.')});
