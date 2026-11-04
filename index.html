@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#173b35"><title>بازار حمل | نسخه آزمایشی</title>
+<style>
+:root{--bg:#f3f6f5;--card:#fff;--ink:#18332e;--muted:#647773;--line:#dce6e2;--green:#16745d;--pale:#e8f4ef;--red:#b33c36;--amber:#98620b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 Tahoma,Arial,sans-serif}header{background:#173b35;color:#fff;padding:18px 16px}header .inner,main{max-width:1000px;margin:auto}h1{font-size:21px;margin:0}header p{margin:3px 0 0;color:#c9ddd6;font-size:13px}.notice{background:#fff5dc;color:#684b0b;padding:10px 14px;font-size:12px;border-bottom:1px solid #f0dfa9}main{padding:14px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}.stat,.panel{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px}.stat small{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:20px}.tabs{display:flex;gap:7px;overflow:auto;margin:0 0 13px;padding-bottom:3px}.tab,button{font:inherit;border:0;border-radius:9px;padding:9px 13px;cursor:pointer}.tab{background:#e5ece9;color:var(--ink);white-space:nowrap}.tab.active,button.primary{background:var(--green);color:white}.tabpage{display:none}.tabpage.active{display:block}.panel{margin-bottom:12px}.panel h2{font-size:16px;margin:0 0 10px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}.field input,.field select,.field textarea{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font:inherit;min-width:0}.field textarea{min-height:65px}.wide{grid-column:1/-1}.actions{display:flex;flex-wrap:wrap;gap:7px;margin-top:11px}button.secondary{background:#e8efec;color:var(--ink)}button.danger{background:#fae9e7;color:var(--red)}button:disabled{opacity:.4;cursor:not-allowed}.muted{color:var(--muted);font-size:12px}.order{border:1px solid var(--line);border-radius:10px;padding:11px;margin:9px 0;background:#fff}.orderhead{display:flex;justify-content:space-between;gap:8px;align-items:center}.order strong{font-size:14px}.pill{font-size:11px;padding:3px 8px;border-radius:30px;background:var(--pale);color:var(--green);white-space:nowrap}.pill.warn{background:#fff2d9;color:var(--amber)}.pill.red{background:#fae9e7;color:var(--red)}.ordergrid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;margin-top:7px;font-size:12px}.ordergrid span{color:var(--muted)}.divider{border:0;border-top:1px solid var(--line);margin:12px 0}.empty{padding:20px;text-align:center;color:var(--muted)}.ledger{font-size:12px;border-bottom:1px solid var(--line);padding:8px 0}.ledger:last-child{border:0}.amount{font-weight:bold}.good{color:var(--green)}.bad{color:var(--red)}.hidden{display:none!important}
+@media(max-width:560px){.stats{grid-template-columns:repeat(3,1fr)}.stat{padding:9px}.stat strong{font-size:17px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.ordergrid{grid-template-columns:1fr 1fr}}
+</style></head>
+<body>
+<header><div class="inner"><h1>بازار حمل</h1><p>سامانه آزمایشی مدیریت سفارش و حمل درون‌شهری</p></div></header>
+<div class="notice">نسخه آزمایشی: اطلاعات فقط در همین مرورگر ذخیره می‌شود. پرداخت، پیامک، حساب کاربری واقعی و اتصال سرور فعال نیست.</div>
+<main>
+<section class="stats">
+<div class="stat"><small>کل سفارش‌ها</small><strong id="sOrders">۰</strong></div>
+<div class="stat"><small>در حال حمل</small><strong id="sActive">۰</strong></div>
+<div class="stat"><small>اعتبار خرید مشتری</small><strong id="sCredit">۰</strong></div>
+</section>
+<nav class="tabs">
+<button class="tab active" data-tab="orders">سفارش‌ها</button><button class="tab" data-tab="new">ثبت سفارش</button><button class="tab" data-tab="wallet">کیف اعتبار خرید</button><button class="tab" data-tab="members">اشتراک‌ها</button><button class="tab" data-tab="reports">گزارش فروشگاه</button>
+</nav>
+<section id="orders" class="tabpage active"><div class="panel"><h2>فهرست سفارش‌ها</h2><div class="field"><label for="filter">فیلتر وضعیت</label><select id="filter"><option value="all">همه سفارش‌ها</option><option value="active">سفارش‌های در جریان</option><option value="completed">تکمیل‌شده</option><option value="returned">مرجوع‌شده</option></select></div><div id="orderList"></div></div></section>
+<section id="new" class="tabpage"><div class="panel"><h2>ثبت سفارش آزمایشی</h2><form id="newForm" class="grid">
+<div class="field"><label>کد فروشگاه</label><input id="storeCode" value="ST-1001" required></div>
+<div class="field"><label>کد مشتری</label><input id="customerCode" value="CU-1001" required></div>
+<div class="field"><label>نام / شرح کالا</label><input id="goods" placeholder="مثلاً بسته لوازم خانگی" required></div>
+<div class="field"><label>مبلغ کالا (تومان)</label><input id="goodsPrice" type="number" min="0" value="250000" required></div>
+<div class="field"><label>هزینه حمل (تومان)</label><input id="shipPrice" type="number" min="0" value="50000" required></div>
+<div class="field"><label>نام حمل‌کننده (اختیاری)</label><input id="carrier" placeholder="نام راننده یا شرکت"></div>
+<div class="field wide"><label>نشانی تحویل / توضیحات</label><textarea id="address" placeholder="نشانی مشتری یا توضیحات"></textarea></div>
+<div class="wide"><button class="primary" type="submit">ثبت سفارش</button><p class="muted">ثبت سفارش فقط زمانی انجام می‌شود که اشتراک فروشگاه و مشتری فعال باشد و اعتبار خرید مشتری برای مبلغ کالا کافی باشد. هزینه حمل از کیف اعتبار خرید کسر نمی‌شود.</p></div>
+</form></div></section>
+<section id="wallet" class="tabpage"><div class="panel"><h2>کیف اعتبار خرید کالا</h2><p>این کیف فقط برای پرداخت مبلغ کالا به فروشگاه عضو استفاده می‌شود؛ هزینه حمل از این موجودی کسر نمی‌شود.</p><div class="grid"><div class="field"><label>کد مشتری</label><input id="walletCustomer" value="CU-1001"></div><div class="field"><label>موجودی اعتبار (تومان)</label><input id="walletBalance" disabled></div><div class="field"><label>مبلغ شارژ (تومان)</label><input id="topupAmount" type="number" min="1" placeholder="مثلاً ۵۰۰۰۰۰"></div><div class="field"><label>کد شارژ / رسید آزمایشی</label><input id="topupCode" placeholder="کد دلخواه برای ثبت تست"></div></div><div class="actions"><button class="primary" id="topupBtn">ثبت شارژ آزمایشی</button></div><p class="muted">در نسخه واقعی، شارژ باید با کد معتبر و تأیید سرور انجام شود؛ در این نسخه هر کد صرفاً برای آزمایش ثبت می‌شود.</p><hr class="divider"><h2>گردش اعتبار خرید</h2><div id="walletLedger"></div></div></section>
+<section id="members" class="tabpage"><div class="panel"><h2>اشتراک فروشگاه و مشتری</h2><p class="muted">اشتراک‌ها از کیف اعتبار خرید و هزینه حمل مستقل‌اند. تغییر تاریخ در این نسخه صرفاً برای آزمایش است.</p><div class="grid">
+<div class="field"><label>کد فروشگاه</label><input id="memberStore" value="ST-1001"><label>تاریخ پایان اشتراک فروشگاه</label><input id="storeExpiry" type="date"></div>
+<div class="field"><label>کد مشتری</label><input id="memberCustomer" value="CU-1001"><label>تاریخ پایان اشتراک مشتری</label><input id="customerExpiry" type="date"></div>
+</div><div class="actions"><button class="primary" id="saveMembers">ذخیره تاریخ اشتراک‌ها</button></div><div id="memberStatus"></div></div></section>
+<section id="reports" class="tabpage"><div class="panel"><h2>گزارش نهایی سفارش‌ها برای فروشگاه</h2><div class="field"><label>کد فروشگاه</label><input id="reportStore" value="ST-1001"></div><div id="reportList"></div></div></section>
+<div class="actions"><button class="secondary" id="resetBtn">بازنشانی داده‌های آزمایشی</button></div>
+</main>
+<script>
+(function(){
+const KEY='bazarHamalDemo_v1';
+const today=()=>new Date().toISOString().slice(0,10);
+const plusDays=n=>{let d=new Date();d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)};
+const seed=()=>({members:{stores:{'ST-1001':plusDays(60)},customers:{'CU-1001':plusDays(30)}},wallets:{'CU-1001':500000},orders:[],ledger:[{id:'L-1',customer:'CU-1001',type:'شارژ اولیه آزمایشی',amount:500000,date:new Date().toISOString()}],reports:[],next:1001});
+let db;try{db=JSON.parse(localStorage.getItem(KEY))||seed()}catch(e){db=seed()}
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+const el=id=>document.getElementById(id);
+const money=n=>Number(n||0).toLocaleString('fa-IR')+' تومان';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const statusText={created:'ثبت‌شده؛ منتظر تأیید فروشگاه',store_accepted:'تأیید فروشگاه',assigned:'حمل‌کننده تعیین شد',picked:'کالا از فروشگاه دریافت شد',sent:'کالا ارسال شد',delivered:'تحویل مشتری شد؛ منتظر پاسخ مرجوعی',returned:'مرجوعی ثبت شد',completed:'حمل تکمیل شد'};
+const activeStatuses=['created','store_accepted','assigned','picked','sent','delivered'];
+const valid=(group,code)=>!!db.members[group][code]&&db.members[group][code]>=today();
+const findWallet=c=>Number(db.wallets[c]||0);
+function render(){
+el('sOrders').textContent=db.orders.length.toLocaleString('fa-IR');
+el('sActive').textContent=db.orders.filter(o=>activeStatuses.includes(o.status)).length.toLocaleString('fa-IR');
+el('sCredit').textContent=money(Object.values(db.wallets).reduce((a,b)=>a+Number(b||0),0));
+el('walletBalance').value=money(findWallet(el('walletCustomer').value.trim()));
+renderOrders();renderLedger();renderMembers();renderReports();
+}
+function renderOrders(){
+let f=el('filter').value;let list=db.orders.filter(o=>f==='all'||(f==='active'&&activeStatuses.includes(o.status))||(f==='completed'&&o.status==='completed')||(f==='returned'&&o.status==='returned'));
+el('orderList').innerHTML=list.length?list.slice().reverse().map(o=>{
+let next='';
+if(o.status==='created')next='<button class="primary" data-act="accept" data-id="'+o.id+'">تأیید فروشگاه</button>';
+if(o.status==='store_accepted')next='<button class="primary" data-act="assign" data-id="'+o.id+'">تعیین حمل‌کننده</button>';
+if(o.status==='assigned')next='<button class="primary" data-act="pickup" data-id="'+o.id+'">تأیید دریافت کالا</button>';
+if(o.status==='picked')next='<button class="primary" data-act="send" data-id="'+o.id+'">ثبت ارسال کالا</button>';
+if(o.status==='sent')next='<button class="primary" data-act="deliver" data-id="'+o.id+'">ثبت تحویل به مشتری</button>';
+if(o.status==='delivered')next='<button class="primary" data-act="noReturn" data-id="'+o.id+'">عدم مرجوعی؛ تکمیل حمل</button><button class="danger" data-act="yesReturn" data-id="'+o.id+'">مشتری درخواست مرجوعی دارد</button>';
+if(o.status==='returned')next='<button class="primary" data-act="finishReturn" data-id="'+o.id+'">تأیید پایان فرایند مرجوعی</button>';
+return '<article class="order"><div class="orderhead"><strong>سفارش '+esc(o.id)+' · '+esc(o.goods)+'</strong><span class="pill '+(o.status==='returned'?'red':o.status==='completed'?'':'warn')+'">'+esc(statusText[o.status])+'</span></div><div class="ordergrid"><div><span>فروشگاه: </span>'+esc(o.store)+'</div><div><span>مشتری: </span>'+esc(o.customer)+'</div><div><span>مبلغ کالا: </span>'+money(o.goodsPrice)+'</div><div><span>هزینه حمل: </span>'+money(o.shipPrice)+'</div><div><span>حمل‌کننده: </span>'+esc(o.carrier||'تعیین نشده')+'</div><div><span>تاریخ: </span>'+new Date(o.created).toLocaleDateString('fa-IR')+'</div></div><div class="actions">'+next+'</div></article>'
+}).join(''):'<div class="empty">سفارشی برای نمایش وجود ندارد.</div>';
+}
+function renderLedger(){let c=el('walletCustomer').value.trim();let a=db.ledger.filter(x=>x.customer===c).slice().reverse();el('walletLedger').innerHTML=a.length?a.map(x=>'<div class="ledger"><b>'+esc(x.type)+'</b> · '+new Date(x.date).toLocaleString('fa-IR')+'<div class="amount '+(x.amount<0?'bad':'good')+'">'+(x.amount>0?'+':'')+money(x.amount)+'</div><span class="muted">'+esc(x.note||'')+'</span></div>').join(''):'<div class="empty">تراکنشی ثبت نشده است.</div>'}
+function renderMembers(){let s=el('memberStore').value.trim()||'ST-1001',c=el('memberCustomer').value.trim()||'CU-1001';el('storeExpiry').value=db.members.stores[s]||'';el('customerExpiry').value=db.members.customers[c]||'';el('memberStatus').innerHTML='<hr class="divider"><p>وضعیت اشتراک فروشگاه: <b>'+ (valid('stores',s)?'فعال':'غیرفعال / منقضی')+'</b></p><p>وضعیت اشتراک مشتری: <b>'+(valid('customers',c)?'فعال':'غیرفعال / منقضی')+'</b></p>'}
+function renderReports(){let s=el('reportStore').value.trim();let a=db.orders.filter(o=>o.store===s&&['completed','returned'].includes(o.status));el('reportList').innerHTML=a.length?a.slice().reverse().map(o=>'<div class="order"><b>سفارش '+esc(o.id)+'</b><p>وضعیت نهایی: '+esc(statusText[o.status])+'</p><p>کالا: '+esc(o.goods)+' | مبلغ کالا: '+money(o.goodsPrice)+' | هزینه حمل مستقل: '+money(o.shipPrice)+'</p><p class="muted">تاریخ پایان: '+esc(o.finishedAt||'')+'</p></div>').join(''):'<div class="empty">هنوز گزارش نهایی برای این فروشگاه ثبت نشده است.</div>'}
+function tab(name){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===name));document.querySelectorAll('.tabpage').forEach(p=>p.classList.toggle('active',p.id===name));render()}
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>tab(b.dataset.tab)));
+el('filter').addEventListener('change',renderOrders);
+el('newForm').addEventListener('submit',e=>{
+e.preventDefault();let s=el('storeCode').value.trim(),c=el('customerCode').value.trim(),gp=Number(el('goodsPrice').value),sp=Number(el('shipPrice').value);
+if(!valid('stores',s)||!valid('customers',c)){alert('اشتراک فروشگاه یا مشتری فعال نیست. ابتدا بخش اشتراک‌ها را بررسی کنید.');return}
+if(gp<0||sp<0||!Number.isFinite(gp)||!Number.isFinite(sp)){alert('مبالغ نامعتبر است.');return}
+if(findWallet(c)<gp){alert('اعتبار خرید مشتری برای مبلغ کالا کافی نیست. هزینه حمل از کیف اعتبار خرید کسر نمی‌شود.');return}
+db.wallets[c]=findWallet(c)-gp;db.ledger.push({id:'L-'+Date.now(),customer:c,type:'پرداخت مبلغ کالا به فروشگاه',amount:-gp,date:new Date().toISOString(),note:'سفارش در انتظار تأیید فروشگاه'});
+let id='BH-'+(db.next++);db.orders.push({id,store:s,customer:c,goods:el('goods').value.trim(),goodsPrice:gp,shipPrice:sp,carrier:el('carrier').value.trim(),address:el('address').value.trim(),status:'created',created:new Date().toISOString(),returnRequested:null});
+save();e.target.reset();el('storeCode').value=s;el('customerCode').value=c;tab('orders');alert('سفارش '+id+' ثبت شد. مبلغ کالا از اعتبار خرید کسر شد؛ هزینه حمل جداگانه باقی ماند.')
+});
+el('orderList').addEventListener('click',e=>{
+let b=e.target.closest('button[data-act]');if(!b)return;let o=db.orders.find(x=>x.id===b.dataset.id);if(!o)return;
+switch(b.dataset.act){
+case'accept':o.status='store_accepted';break;
+case'assign':o.carrier=o.carrier||prompt('نام حمل‌کننده را وارد کنید:','حمل‌کننده آزمایشی');if(!o.carrier)return;o.status='assigned';break;
+case'pickup':o.status='picked';break;
+case'send':o.status='sent';break;
+case'deliver':o.status='delivered';break;
+case'noReturn':o.returnRequested=false;o.status='completed';o.finishedAt=today();db.reports.push({order:o.id,store:o.store,result:'تحویل نهایی؛ بدون مرجوعی',date:o.finishedAt});break;
+case'yesReturn':o.returnRequested=true;o.status='returned';o.finishedAt=today();db.reports.push({order:o.id,store:o.store,result:'درخواست مرجوعی مشتری ثبت شد؛ نیازمند پیگیری',date:o.finishedAt});break;
+case'finishReturn':o.status='completed';o.finishedAt=today();db.reports.push({order:o.id,store:o.store,result:'فرایند مرجوعی پیگیری و بسته شد',date:o.finishedAt});break;
+}
+save();render();
+});
+el('topupBtn').addEventListener('click',()=>{let c=el('walletCustomer').value.trim(),n=Number(el('topupAmount').value),code=el('topupCode').value.trim();if(!c||!Number.isFinite(n)||n<=0||!code){alert('کد مشتری، مبلغ و کد شارژ را وارد کنید.');return}if(!db.members.customers[c]){alert('کد مشتری در بخش اشتراک‌ها ثبت نشده است.');return}db.wallets[c]=findWallet(c)+n;db.ledger.push({id:'L-'+Date.now(),customer:c,type:'شارژ آزمایشی با کد '+code,amount:n,date:new Date().toISOString(),note:'شارژ نمایشی؛ بدون تأیید پرداخت واقعی'});save();el('topupAmount').value='';el('topupCode').value='';render();alert('شارژ آزمایشی ثبت شد.')});
+el('saveMembers').addEventListener('click',()=>{let s=el('memberStore').value.trim(),c=el('memberCustomer').value.trim(),se=el('storeExpiry').value,ce=el('customerExpiry').value;if(!s||!c||!se||!ce){alert('کدها و تاریخ پایان هر دو اشتراک لازم است.');return}db.members.stores[s]=se;db.members.customers[c]=ce;save();render();alert('تاریخ اشتراک‌ها ذخیره شد.')});
+['walletCustomer','memberStore','memberCustomer','reportStore'].forEach(id=>el(id).addEventListener('input',render));
+el('resetBtn').addEventListener('click',()=>{if(confirm('همه سفارش‌ها و تغییرات آزمایشی این مرورگر پاک و داده اولیه جایگزین شود؟')){db=seed();save();render();tab('orders')}});
+save();render();
+})();
+</script></body></html>
